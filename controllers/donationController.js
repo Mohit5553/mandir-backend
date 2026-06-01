@@ -11,8 +11,8 @@ exports.getDonations = async (req, res) => {
 
 exports.createOrder = async (req, res) => {
   try {
-    const { name, amount, phone, category, utr } = req.body;
-    const donation = new Donation({ name, amount, phone, category, utr, paymentStatus: 'Pending' });
+    const { name, amount, phone, category, utr, screenshot } = req.body;
+    const donation = new Donation({ name, amount, phone, category, utr, screenshot, paymentStatus: 'Pending' });
     await donation.save();
     res.status(201).json(donation);
   } catch (error) {

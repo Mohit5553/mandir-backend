@@ -1,10 +1,9 @@
 const mongoose = require('mongoose');
 
 const gallerySchema = new mongoose.Schema({
-  title: { type: String, required: true },
-  type: { type: String, enum: ['image', 'video'], required: true },
-  url: { type: String, required: true },
-  cloudinaryId: { type: String },
+  title: { type: String, default: 'Gallery Photo' },
+  imageUrl: { type: String, required: true },  // Base64 or URL
+  type: { type: String, enum: ['image', 'video'], default: 'image' },
   uploadedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   createdAt: { type: Date, default: Date.now }
 });
