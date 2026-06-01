@@ -21,7 +21,7 @@ exports.createNews = async (req, res) => {
 
 exports.updateNews = async (req, res) => {
   try {
-    const newsItem = await News.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const newsItem = await News.findByIdAndUpdate(req.params.id, req.body, { new: true, returnDocument: 'after' });
     res.status(200).json(newsItem);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });

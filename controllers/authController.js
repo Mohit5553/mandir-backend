@@ -36,7 +36,7 @@ exports.getAllUsers = async (req, res) => {
 exports.updateUser = async (req, res) => {
   try {
     const { name, role } = req.body;
-    const user = await User.findByIdAndUpdate(req.params.id, { name, role }, { new: true });
+    const user = await User.findByIdAndUpdate(req.params.id, { name, role }, { new: true, returnDocument: 'after' });
     res.status(200).json(user);
   } catch (error) {
     res.status(500).json({ message: 'Update failed', error: error.message });

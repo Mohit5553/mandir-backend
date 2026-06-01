@@ -23,7 +23,7 @@ exports.createOrder = async (req, res) => {
 exports.updateStatus = async (req, res) => {
   try {
     const { status } = req.body;
-    const donation = await Donation.findByIdAndUpdate(req.params.id, { paymentStatus: status }, { new: true });
+    const donation = await Donation.findByIdAndUpdate(req.params.id, { paymentStatus: status }, { new: true, returnDocument: 'after' });
     res.json(donation);
   } catch (error) {
     res.status(500).json({ message: error.message });
