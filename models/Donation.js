@@ -12,6 +12,7 @@ const donationSchema = new mongoose.Schema({
     required: true
   },
   paymentStatus: { type: String, enum: ['Pending', 'Approved', 'Rejected'], default: 'Pending' },
+  paymentMode: { type: String, enum: ['Cash', 'UPI'], default: 'UPI' },
   utr: { type: String },
   screenshot: { type: String },
   paymentId: { type: String },

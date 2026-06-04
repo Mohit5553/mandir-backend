@@ -27,6 +27,7 @@ app.use('/api/gallery', require('./routes/gallery'));
 app.use('/api/reports', require('./routes/reports'));
 app.use('/api/stats', require('./routes/stats'));
 app.use('/api/contact', require('./routes/contact'));
+app.use('/api/trust-management', require('./routes/trustManagement'));
 
 // Welcome Route
 app.get('/', (req, res) => res.send('🕉️ Shree Manvat Baba Mahashiv Mandir Trust API is Running...'));
