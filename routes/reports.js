@@ -5,7 +5,10 @@ const Event = require('../models/Event');
 const News = require('../models/News');
 const User = require('../models/User');
 
-// Full Reports API
+const DONATION_CATEGORIES = ['General Donation', 'Construction Fund', 'Annadan', 'Gau Seva'];
+const PAYMENT_MODES = ['Cash', 'UPI'];
+const DONATION_STATUSES = ['Approved', 'Pending', 'Rejected'];
+
 router.get('/', async (req, res) => {
   try {
     const now = new Date();
@@ -13,34 +16,83 @@ router.get('/', async (req, res) => {
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const startOfYear = new Date(now.getFullYear(), 0, 1);
 
-    const donationsCompleted = await Donation.find({ paymentStatus: 'Completed' });
+    const [allDonations, totalUsers, totalEvents, totalNews] = await Promise.all([
+      Donation.find().sort({ createdAt: -1 }),
+      User.countDocuments(),
+      Event.countDocuments(),
+      News.countDocuments()
+    ]);
 
-    const totalAmount = donationsCompleted.reduce((sum, d) => sum + d.amount, 0);
-    const todayAmount = donationsCompleted
-      .filter(d => d.createdAt >= startOfDay)
-      .reduce((sum, d) => sum + d.amount, 0);
-    const monthAmount = donationsCompleted
-      .filter(d => d.createdAt >= startOfMonth)
-      .reduce((sum, d) => sum + d.amount, 0);
-    const yearAmount = donationsCompleted
-      .filter(d => d.createdAt >= startOfYear)
-      .reduce((sum, d) => sum + d.amount, 0);
+    const approvedDonations = allDonations.filter(donation => donation.paymentStatus === 'Approved');
 
-    // Category breakdown
-    const categories = ['General Donation', 'Construction Fund', 'Annadan', 'Gau Seva'];
-    const categoryBreakdown = {};
-    for (const cat of categories) {
-      const catDonations = donationsCompleted.filter(d => d.category === cat);
-      categoryBreakdown[cat] = {
-        count: catDonations.length,
-        total: catDonations.reduce((sum, d) => sum + d.amount, 0)
+    const sumAmounts = (items) => items.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
+    const filterSince = (items, start) => items.filter(item => new Date(item.createdAt) >= start);
+
+    const totalAmount = sumAmounts(approvedDonations);
+    const todayAmount = sumAmounts(filterSince(approvedDonations, startOfDay));
+    const monthAmount = sumAmounts(filterSince(approvedDonations, startOfMonth));
+    const yearAmount = sumAmounts(filterSince(approvedDonations, startOfYear));
+
+    const paymentModeBreakdown = PAYMENT_MODES.map((mode) => {
+      const modeDonations = approvedDonations.filter(donation => donation.paymentMode === mode);
+      return {
+        mode,
+        total: sumAmounts(modeDonations),
+        count: modeDonations.length
       };
-    }
+    });
 
-    const totalUsers = await User.countDocuments({ role: 'Devotee' });
+    const categoryBreakdown = DONATION_CATEGORIES.map((category) => {
+      const categoryDonations = approvedDonations.filter(donation => donation.category === category);
+      return {
+        name: category,
+        total: sumAmounts(categoryDonations),
+        count: categoryDonations.length
+      };
+    });
+
+    const statusBreakdown = DONATION_STATUSES.map((status) => {
+      const statusDonations = allDonations.filter(donation => donation.paymentStatus === status);
+      return {
+        status,
+        count: statusDonations.length,
+        total: status === 'Approved' ? sumAmounts(statusDonations) : 0
+      };
+    });
+
+    const monthlyTrend = Array.from({ length: 6 }, (_, index) => {
+      const monthStart = new Date(now.getFullYear(), now.getMonth() - (5 - index), 1);
+      const monthEnd = new Date(now.getFullYear(), now.getMonth() - (4 - index), 1);
+      const monthDonations = approvedDonations.filter(donation => {
+        const createdAt = new Date(donation.createdAt);
+        return createdAt >= monthStart && createdAt < monthEnd;
+      });
+
+      return {
+        label: monthStart.toLocaleString('en-IN', { month: 'short' }),
+        total: sumAmounts(monthDonations),
+        count: monthDonations.length
+      };
+    });
+
+    const averageDonation = approvedDonations.length ? Math.round(totalAmount / approvedDonations.length) : 0;
+    const largestDonation = approvedDonations.reduce((max, donation) => (
+      Number(donation.amount) > Number(max.amount || 0) ? donation : max
+    ), {});
+
+    const topCategory = [...categoryBreakdown].sort((a, b) => b.total - a.total)[0] || { name: 'N/A', total: 0 };
+    const latestApprovedDonation = approvedDonations[0] || null;
+    const recentDonations = allDonations.slice(0, 6).map((donation) => ({
+      _id: donation._id,
+      name: donation.name,
+      amount: donation.amount,
+      category: donation.category,
+      paymentMode: donation.paymentMode,
+      paymentStatus: donation.paymentStatus,
+      createdAt: donation.createdAt
+    }));
+
     const newUsersThisMonth = await User.countDocuments({ createdAt: { $gte: startOfMonth } });
-    const totalEvents = await Event.countDocuments();
-    const totalNews = await News.countDocuments();
 
     res.status(200).json({
       donations: {
@@ -48,12 +100,31 @@ router.get('/', async (req, res) => {
         today: todayAmount,
         thisMonth: monthAmount,
         thisYear: yearAmount,
-        count: donationsCompleted.length,
-        categoryBreakdown
+        approvedCount: approvedDonations.length,
+        average: averageDonation,
+        largest: {
+          amount: Number(largestDonation.amount) || 0,
+          donorName: largestDonation.name || '-'
+        },
+        latestApprovedAt: latestApprovedDonation?.createdAt || null,
+        topCategory
       },
-      users: { total: totalUsers, newThisMonth: newUsersThisMonth },
-      events: { total: totalEvents },
-      news: { total: totalNews }
+      breakdowns: {
+        paymentModes: paymentModeBreakdown,
+        categories: categoryBreakdown,
+        statuses: statusBreakdown,
+        monthlyTrend
+      },
+      counts: {
+        users: totalUsers,
+        newUsersThisMonth,
+        events: totalEvents,
+        news: totalNews,
+        totalDonations: allDonations.length,
+        pendingDonations: statusBreakdown.find(item => item.status === 'Pending')?.count || 0,
+        rejectedDonations: statusBreakdown.find(item => item.status === 'Rejected')?.count || 0
+      },
+      recentDonations
     });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });

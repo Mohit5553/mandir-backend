@@ -24,6 +24,7 @@ app.use('/api/events', require('./routes/events'));
 app.use('/api/news', require('./routes/news'));
 app.use('/api/notifications', require('./routes/notifications'));
 app.use('/api/gallery', require('./routes/gallery'));
+app.use('/api/carousel', require('./routes/carousel'));
 app.use('/api/reports', require('./routes/reports'));
 app.use('/api/stats', require('./routes/stats'));
 app.use('/api/contact', require('./routes/contact'));
