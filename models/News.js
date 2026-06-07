@@ -5,6 +5,7 @@ const newsSchema = new mongoose.Schema({
   content: { type: String, required: true },
   images: [{ type: String }],
   videos: [{ type: String }],
+  featuredOnHome: { type: Boolean, default: false },
   author: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   createdAt: { type: Date, default: Date.now }
 });

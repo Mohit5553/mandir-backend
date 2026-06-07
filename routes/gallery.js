@@ -4,6 +4,7 @@ const galleryController = require('../controllers/galleryController');
 
 router.get('/', galleryController.getGalleryItems);
 router.post('/', galleryController.addGalleryItem);
+router.put('/:id', galleryController.updateGalleryItem);
 router.delete('/:id', galleryController.deleteGalleryItem);
 
 module.exports = router;

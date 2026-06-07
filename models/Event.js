@@ -7,6 +7,7 @@ const eventSchema = new mongoose.Schema({
   time: { type: String },
   location: { type: String },
   imageUrl: { type: String },
+  featuredOnHome: { type: Boolean, default: false },
   createdAt: { type: Date, default: Date.now }
 });
 

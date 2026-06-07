@@ -5,6 +5,18 @@ const defaultCategories = [
   { key: 'supporting', name: 'सहयोगी सदस्य', displayType: 'namesOnly', order: 2 }
 ];
 
+const defaultRoles = [
+  { key: 'अध्यक्ष', name: 'अध्यक्ष', order: 1 },
+  { key: 'उपाध्यक्ष', name: 'उपाध्यक्ष', order: 2 },
+  { key: 'सचिव', name: 'सचिव', order: 3 },
+  { key: 'मंत्री', name: 'मंत्री', order: 4 },
+  { key: 'व्यवस्थापक', name: 'व्यवस्थापक', order: 5 },
+  { key: 'कोषाध्यक्ष', name: 'कोषाध्यक्ष', order: 6 },
+  { key: 'संरक्षक', name: 'संरक्षक', order: 7 },
+  { key: 'सहयोगी', name: 'सहयोगी', order: 8 },
+  { key: 'लेखक', name: 'लेखक', order: 9 }
+];
+
 const defaultMembers = [
   { role: 'अध्यक्ष', name: 'सुनील मौर्य', category: 'office', order: 1 },
   { role: 'सचिव', name: 'मुकेश मौर्य', category: 'office', order: 2 },
@@ -27,6 +39,7 @@ const toKey = (name) => (
 
 const sortTrust = (trust) => {
   trust.categories.sort((a, b) => (a.order || 0) - (b.order || 0));
+  trust.roles.sort((a, b) => (a.order || 0) - (b.order || 0));
   trust.members.sort((a, b) => (a.order || 0) - (b.order || 0));
 };
 
@@ -35,6 +48,11 @@ const ensureDefaults = async (trust) => {
 
   if (!Array.isArray(trust.categories) || trust.categories.length === 0) {
     trust.categories = defaultCategories;
+    changed = true;
+  }
+
+  if (!Array.isArray(trust.roles) || trust.roles.length === 0) {
+    trust.roles = defaultRoles;
     changed = true;
   }
 
@@ -50,6 +68,13 @@ const ensureDefaults = async (trust) => {
     }
   }
 
+  for (const role of defaultRoles) {
+    if (!trust.roles.some(item => item.key === role.key)) {
+      trust.roles.push(role);
+      changed = true;
+    }
+  }
+
   if (changed) {
     trust.updatedAt = Date.now();
     await trust.save();
@@ -61,6 +86,7 @@ const getTrustDocument = async () => {
   if (!trust) {
     trust = await TrustManagement.create({
       categories: defaultCategories,
+      roles: defaultRoles,
       members: defaultMembers
     });
   }
@@ -140,6 +166,72 @@ exports.deleteCategory = async (req, res) => {
     await trust.save();
 
     res.status(200).json({ message: 'Category deleted' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+exports.addRole = async (req, res) => {
+  try {
+    const trust = await getTrustDocument();
+    const name = String(req.body.name || '').trim();
+    if (!name) return res.status(400).json({ message: 'Role name is required' });
+
+    let key = toKey(req.body.key || name);
+    if (trust.roles.some(role => role.key === key)) {
+      key = `${key}-${Date.now()}`;
+    }
+
+    trust.roles.push({
+      key,
+      name,
+      order: Number(req.body.order) || 0
+    });
+    trust.updatedAt = Date.now();
+    await trust.save();
+    sortTrust(trust);
+
+    res.status(201).json(trust);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+exports.updateRole = async (req, res) => {
+  try {
+    const trust = await getTrustDocument();
+    const role = trust.roles.id(req.params.roleId);
+    if (!role) return res.status(404).json({ message: 'Role not found' });
+
+    role.name = req.body.name || role.name;
+    role.order = Number(req.body.order) || 0;
+    trust.updatedAt = Date.now();
+    await trust.save();
+    sortTrust(trust);
+
+    res.status(200).json(trust);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+exports.deleteRole = async (req, res) => {
+  try {
+    const trust = await getTrustDocument();
+    const role = trust.roles.id(req.params.roleId);
+    if (!role) return res.status(404).json({ message: 'Role not found' });
+
+    // Optional constraint: Don't let them delete a role if it is in use
+    const hasMembers = trust.members.some(member => member.role === role.name || member.role === role.key);
+    if (hasMembers) {
+      return res.status(400).json({ message: 'Update or delete members using this role first' });
+    }
+
+    role.deleteOne();
+    trust.updatedAt = Date.now();
+    await trust.save();
+
+    res.status(200).json({ message: 'Role deleted' });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }

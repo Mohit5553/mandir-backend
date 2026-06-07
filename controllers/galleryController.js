@@ -19,6 +19,16 @@ exports.addGalleryItem = async (req, res) => {
   }
 };
 
+exports.updateGalleryItem = async (req, res) => {
+  try {
+    const item = await Gallery.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
+    if (!item) return res.status(404).json({ message: 'Item not found' });
+    res.json(item);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 exports.deleteGalleryItem = async (req, res) => {
   try {
     await Gallery.findByIdAndDelete(req.params.id);
