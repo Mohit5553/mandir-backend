@@ -2,6 +2,17 @@ const News = require('../models/News');
 
 exports.getAllNews = async (req, res) => {
   try {
+    const page = parseInt(req.query.page);
+    const limit = parseInt(req.query.limit);
+
+    if (page && limit) {
+      const skip = (page - 1) * limit;
+      const total = await News.countDocuments();
+      const news = await News.find().sort({ createdAt: -1 }).skip(skip).limit(limit).populate('author', 'name');
+      return res.status(200).json({ data: news, totalPages: Math.ceil(total / limit), currentPage: page });
+    }
+
+    // Fallback for requests without pagination
     const news = await News.find().sort({ createdAt: -1 }).populate('author', 'name');
     res.status(200).json(news);
   } catch (error) {

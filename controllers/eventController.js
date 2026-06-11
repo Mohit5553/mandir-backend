@@ -2,6 +2,17 @@ const Event = require('../models/Event');
 
 exports.getAllEvents = async (req, res) => {
   try {
+    const page = parseInt(req.query.page);
+    const limit = parseInt(req.query.limit);
+
+    if (page && limit) {
+      const skip = (page - 1) * limit;
+      const total = await Event.countDocuments();
+      const events = await Event.find().sort({ date: 1 }).skip(skip).limit(limit);
+      return res.status(200).json({ data: events, totalPages: Math.ceil(total / limit), currentPage: page });
+    }
+
+    // Fallback for requests without pagination
     const events = await Event.find().sort({ date: 1 });
     res.status(200).json(events);
   } catch (error) {

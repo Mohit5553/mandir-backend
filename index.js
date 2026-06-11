@@ -14,8 +14,8 @@ const app = express();
 
 // Middlewares
 app.use(cors());
-app.use(express.json({ limit: '50mb' })); // Increased for Base64 images
-app.use(express.urlencoded({ extended: false, limit: '50mb' }));
+app.use(express.json({ limit: '5mb' })); // Changed from 50mb to prevent DDoS
+app.use(express.urlencoded({ extended: false, limit: '5mb' }));
 
 // Routes
 app.use('/api/auth', require('./routes/auth'));
