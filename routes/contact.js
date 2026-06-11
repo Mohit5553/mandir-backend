@@ -36,4 +36,27 @@ router.get('/', async (req, res) => {
   }
 });
 
+// Toggle read status (Admin)
+router.patch('/:id/read', async (req, res) => {
+  try {
+    const contact = await Contact.findById(req.params.id);
+    if (!contact) return res.status(404).json({ message: 'Message not found' });
+    contact.isRead = !contact.isRead;
+    await contact.save();
+    res.status(200).json(contact);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Delete a contact message (Admin)
+router.delete('/:id', async (req, res) => {
+  try {
+    await Contact.findByIdAndDelete(req.params.id);
+    res.status(200).json({ message: 'Message deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
 module.exports = router;

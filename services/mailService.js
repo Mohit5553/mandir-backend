@@ -480,3 +480,75 @@ exports.sendNotificationEmail = async (notification, recipients) => {
     rejected: info.rejected
   };
 };
+
+const buildPasswordResetHtml = (resetUrl) => {
+  const safeTrustName = escapeHtml(trustName);
+  return `
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Password Reset Request</title>
+  </head>
+  <body style="margin:0;background:#fff5eb;font-family:Arial,Helvetica,sans-serif;color:#172033;padding:20px 10px;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;margin:0 auto;background:#ffffff;border-radius:12px;overflow:hidden;border:1px solid #fed7aa;box-shadow:0 8px 24px rgba(251,146,60,0.1);">
+      <tr>
+        <td style="background:#ff6b00;padding:24px;text-align:center;color:#ffffff;">
+          <h1 style="margin:0;font-size:24px;line-height:1.2;">Password Reset Link</h1>
+          <p style="margin:6px 0 0;font-size:14px;opacity:0.9;">Shree Mandir Trust Administrator Panel</p>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:28px;line-height:1.6;font-size:15px;color:#334155;">
+          <p>Hello,</p>
+          <p>We received a request to reset the password for your administrator account at <strong>${safeTrustName}</strong>.</p>
+          <p>To set a new password, please click the button below within the next hour:</p>
+          
+          <div style="text-align:center;margin:30px 0;">
+            <a href="${resetUrl}" style="background:#ff6b00;color:#ffffff;padding:12px 28px;text-decoration:none;border-radius:24px;font-weight:700;display:inline-block;box-shadow:0 4px 12px rgba(255,107,0,0.25);">
+              Reset Password Now
+            </a>
+          </div>
+          
+          <p style="color:#64748b;font-size:13px;word-break:break-all;">
+            If you're having trouble with the button, copy and paste this URL into your browser:<br />
+            <a href="${resetUrl}" style="color:#ff6b00;text-decoration:none;">${resetUrl}</a>
+          </p>
+          
+          <p>If you did not request this change, you can safely ignore this email. Your password will remain unchanged.</p>
+          
+          <p style="margin-top:28px;border-top:1px solid #f1f5f9;padding-top:20px;color:#64748b;font-size:14px;">
+            Warm regards,<br />
+            <strong>${safeTrustName} Team</strong>
+          </p>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>`;
+};
+
+exports.sendPasswordResetEmail = async (email, resetUrl) => {
+  const transporter = getTransporter();
+  if (!transporter) {
+    console.warn('Password reset email skipped: SMTP environment variables are not configured.');
+    return { sent: false, skipped: true, reason: 'SMTP not configured' };
+  }
+
+  const info = await transporter.sendMail({
+    from: process.env.MAIL_FROM || `"${trustName}" <${process.env.SMTP_USER}>`,
+    to: email,
+    subject: `Password Reset Request - ${trustName}`,
+    text: `You requested a password reset for your administrator account at ${trustName}. Please reset your password by opening the following link: ${resetUrl}`,
+    html: buildPasswordResetHtml(resetUrl)
+  });
+
+  return {
+    sent: true,
+    skipped: false,
+    messageId: info.messageId,
+    accepted: info.accepted,
+    rejected: info.rejected
+  };
+};
