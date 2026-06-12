@@ -4,6 +4,7 @@ const Donation = require('../models/Donation');
 const User = require('../models/User');
 const Event = require('../models/Event');
 const News = require('../models/News');
+const VisitorCount = require('../models/VisitorCount');
 
 router.get('/dashboard', async (req, res) => {
   try {
@@ -58,6 +59,36 @@ router.get('/dashboard', async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ message: 'Error fetching stats', error: error.message });
+  }
+});
+
+// @desc    Increment visitor count
+// @route   POST /api/stats/visit
+// @access  Public
+router.post('/visit', async (req, res) => {
+  try {
+    let visitorStat = await VisitorCount.findOne();
+    if (!visitorStat) {
+      visitorStat = new VisitorCount({ count: 1 });
+    } else {
+      visitorStat.count += 1;
+    }
+    await visitorStat.save();
+    res.status(200).json({ count: visitorStat.count });
+  } catch (error) {
+    res.status(500).json({ message: 'Error updating visitor count', error: error.message });
+  }
+});
+
+// @desc    Get total visitor count
+// @route   GET /api/stats/visitors
+// @access  Public
+router.get('/visitors', async (req, res) => {
+  try {
+    let visitorStat = await VisitorCount.findOne();
+    res.status(200).json({ count: visitorStat ? visitorStat.count : 0 });
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching visitor count', error: error.message });
   }
 });
 

@@ -33,6 +33,7 @@ app.use('/api/site-content', require('./routes/siteContent'));
 app.use('/api/volunteers', require('./routes/volunteers'));
 app.use('/api/live', require('./routes/live'));
 app.use('/api/roles', require('./routes/roles'));
+app.use('/api/reviews', require('./routes/reviews'));
 
 // Welcome Route
 app.get('/', (req, res) => res.send('🕉️ Shree Manvat Baba Mahashiv Mandir Trust API is Running...'));
