@@ -142,10 +142,18 @@ io.on('connection', (socket) => {
     socket.to('live-room').emit('stream-active', data);
   });
 
+  // Request viewers to re-handshake with admin
+  socket.on('request-viewers-handshake', () => {
+    socket.to('live-room').emit('request-viewers-handshake');
+  });
+
   // Handle viewer starting WebRTC handshaking
   socket.on('viewer-join-stream', () => {
-    // Notify the host/broadcaster that a new viewer wants to connect
+    console.log(`📡 Viewer ${socket.id} requested WebRTC stream. Relaying to admin...`);
     socket.to('live-room').emit('viewer-joined-stream', { socketId: socket.id });
+    if (adminSocketId && adminSocketId !== socket.id) {
+      io.to(adminSocketId).emit('viewer-joined-stream', { socketId: socket.id });
+    }
   });
 
   // WebRTC Signal forwarding: Host sends Offer to Viewer

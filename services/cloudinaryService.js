@@ -32,16 +32,17 @@ const uploadBase64Image = async (base64Str, folder = 'temple_assets') => {
   if (!base64Str) return null;
   
   // If it's already a URL, return it directly
-  if (base64Str.startsWith('http://') || base64Str.startsWith('https://')) {
+  if (base64Str.startsWith('http://') || base64Str.startsWith('https://') || base64Str.startsWith('/uploads/')) {
     return base64Str;
   }
 
   // Fallback if Cloudinary is not configured: save file locally
   if (!isConfigured) {
     try {
-      const match = base64Str.match(/^data:(image|video)\/([a-zA-Z0-9]+);base64,/);
-      const ext = match ? match[2] : 'png';
-      const base64Data = base64Str.replace(/^data:(image|video)\/[a-zA-Z0-9]+;base64,/, '');
+      const match = base64Str.match(/^data:(image|video|audio)\/([a-zA-Z0-9\+\-\.]+);base64,/);
+      let ext = match ? match[2] : 'png';
+      if (ext === 'mpeg' || ext === 'mp3') ext = 'mp3';
+      const base64Data = base64Str.replace(/^data:(image|video|audio)\/[a-zA-Z0-9\+\-\.]+;base64,/, '');
       
       const targetDir = path.join(__dirname, '../public/uploads', folder);
       if (!fs.existsSync(targetDir)) {

@@ -49,7 +49,7 @@ const contactRules = [
 const reviewRules = [
   body('name').trim().notEmpty().withMessage('Name is required'),
   body('rating').isInt({ min: 1, max: 5 }).withMessage('Rating must be an integer between 1 and 5'),
-  body('comment').trim().notEmpty().withMessage('Comment is required').isLength({ min: 5 }).withMessage('Comment must be at least 5 characters long'),
+  body('comment').trim().notEmpty().withMessage('Comment is required').isLength({ min: 2 }).withMessage('Comment must be at least 2 characters long'),
   validate
 ];
 

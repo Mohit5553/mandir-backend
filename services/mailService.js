@@ -54,7 +54,7 @@ const buildDonationReceiptHtml = (donation) => {
   const utr = escapeHtml(donation.utr || 'N/A');
   const amount = formatCurrency(donation.amount);
   const donatedOn = formatDate(donation.createdAt);
-  const safeTrustName = escapeHtml(trustName);
+  const safeTrustName = 'श्री मन्वत बाबा महाशिव मंदिर ट्रस्ट';
 
   return `
 <!doctype html>
@@ -62,72 +62,80 @@ const buildDonationReceiptHtml = (donation) => {
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Donation Receipt</title>
+    <title>दान रसीद - श्री मन्वत बाबा महाशिव मंदिर ट्रस्ट</title>
   </head>
-  <body style="margin:0;background:#fff7ed;font-family:Arial,Helvetica,sans-serif;color:#172033;">
-    <div style="display:none;max-height:0;overflow:hidden;">Your donation has been approved. Receipt ${receiptNo} is included.</div>
+  <body style="margin:0;background:#fff7ed;font-family:'Segoe UI',Roboto,Arial,sans-serif;color:#172033;">
+    <div style="display:none;max-height:0;overflow:hidden;">आपका दान सफलतापूर्वक स्वीकृत हो गया है। रसीद संख्या: ${receiptNo}</div>
     <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#fff7ed;padding:28px 12px;">
       <tr>
         <td align="center">
-          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:680px;background:#ffffff;border-radius:18px;overflow:hidden;border:1px solid #fed7aa;box-shadow:0 14px 40px rgba(154,52,18,0.12);">
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:680px;background:#ffffff;border-radius:20px;overflow:hidden;border:1px solid #fed7aa;box-shadow:0 14px 40px rgba(154,52,18,0.12);">
             <tr>
-              <td style="background:#ff6b00;padding:26px 28px;text-align:center;color:#ffffff;">
-                <div style="font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;">Donation Approved</div>
-                <h1 style="margin:8px 0 0;font-size:28px;line-height:1.25;">Thank you, ${donorName}</h1>
-                <p style="margin:10px 0 0;font-size:15px;line-height:1.6;">Your generous contribution has been received by ${safeTrustName}.</p>
+              <td style="background:linear-gradient(135deg, #FF6000 0%, #ea580c 100%);padding:28px 24px;text-align:center;color:#ffffff;">
+                <div style="font-size:36px;margin-bottom:6px;">🛕</div>
+                <div style="font-size:22px;font-weight:800;letter-spacing:0.5px;margin-bottom:4px;">${safeTrustName}</div>
+                <div style="font-size:13px;opacity:0.95;font-weight:600;">बैरामपुर, कर्नलगंज, गोंडा (उ.प्र.) - 271502</div>
+                <div style="margin-top:16px;display:inline-block;background:rgba(255,255,255,0.22);padding:4px 16px;border-radius:99px;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;">
+                  ✓ आधिकारिक दान रसीद (Official Donation Receipt)
+                </div>
               </td>
             </tr>
             <tr>
               <td style="padding:28px;">
+                <div style="text-align:center;margin-bottom:20px;">
+                  <h2 style="margin:0;color:#9a3412;font-size:22px;font-weight:800;">हार्दिक धन्यवाद, ${donorName} जी! 🙏</h2>
+                  <p style="margin:6px 0 0;color:#64748b;font-size:14px;">श्री मन्वत बाबा मंदिर हेतु आपका पवित्र सहयोग सफलतापूर्वक प्राप्त हुआ है।</p>
+                </div>
+
                 <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border:2px solid #ff6b00;border-radius:16px;overflow:hidden;">
                   <tr>
-                    <td style="padding:22px;text-align:center;background:#fffaf5;border-bottom:1px solid #fed7aa;">
-                      <div style="font-size:12px;color:#9a3412;font-weight:700;letter-spacing:1px;text-transform:uppercase;">Official Donation Receipt</div>
-                      <div style="margin-top:6px;font-size:13px;color:#64748b;">Receipt No: ${receiptNo}</div>
+                    <td style="padding:16px 20px;text-align:center;background:#fffaf5;border-bottom:1px solid #fed7aa;">
+                      <div style="font-size:12px;color:#9a3412;font-weight:800;letter-spacing:1px;text-transform:uppercase;">रसीद विवरण</div>
+                      <div style="margin-top:4px;font-size:14px;color:#ea580c;font-weight:800;">रसीद संख्या: ${receiptNo}</div>
                     </td>
                   </tr>
                   <tr>
-                    <td style="padding:22px;">
+                    <td style="padding:20px;">
                       <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
                         <tr>
-                          <td style="padding:10px 0;color:#64748b;font-size:13px;">Donor Name</td>
-                          <td align="right" style="padding:10px 0;font-weight:700;font-size:14px;">${donorName}</td>
+                          <td style="padding:10px 0;color:#64748b;font-size:14px;font-weight:600;">दानकर्ता का नाम:</td>
+                          <td align="right" style="padding:10px 0;font-weight:800;font-size:15px;color:#1e293b;">${donorName}</td>
                         </tr>
                         <tr>
-                          <td style="padding:10px 0;color:#64748b;font-size:13px;border-top:1px dashed #e2e8f0;">Category</td>
-                          <td align="right" style="padding:10px 0;font-weight:700;font-size:14px;border-top:1px dashed #e2e8f0;">${category}</td>
+                          <td style="padding:10px 0;color:#64748b;font-size:14px;font-weight:600;border-top:1px dashed #e2e8f0;">दान की श्रेणी (Category):</td>
+                          <td align="right" style="padding:10px 0;font-weight:800;font-size:15px;color:#1e293b;border-top:1px dashed #e2e8f0;">${category}</td>
                         </tr>
                         <tr>
-                          <td style="padding:10px 0;color:#64748b;font-size:13px;border-top:1px dashed #e2e8f0;">Payment Mode</td>
-                          <td align="right" style="padding:10px 0;font-weight:700;font-size:14px;border-top:1px dashed #e2e8f0;">${paymentMode}</td>
+                          <td style="padding:10px 0;color:#64748b;font-size:14px;font-weight:600;border-top:1px dashed #e2e8f0;">भुगतान का माध्यम (Mode):</td>
+                          <td align="right" style="padding:10px 0;font-weight:800;font-size:15px;color:#1e293b;border-top:1px dashed #e2e8f0;">${paymentMode}</td>
                         </tr>
                         <tr>
-                          <td style="padding:10px 0;color:#64748b;font-size:13px;border-top:1px dashed #e2e8f0;">Transaction ID</td>
-                          <td align="right" style="padding:10px 0;font-weight:700;font-size:14px;border-top:1px dashed #e2e8f0;">${utr}</td>
+                          <td style="padding:10px 0;color:#64748b;font-size:14px;font-weight:600;border-top:1px dashed #e2e8f0;">यूटीआर / ट्रांजैक्शन ID:</td>
+                          <td align="right" style="padding:10px 0;font-weight:800;font-size:15px;color:#1e293b;border-top:1px dashed #e2e8f0;">${utr}</td>
                         </tr>
                         <tr>
-                          <td style="padding:10px 0;color:#64748b;font-size:13px;border-top:1px dashed #e2e8f0;">Donation Date</td>
-                          <td align="right" style="padding:10px 0;font-weight:700;font-size:14px;border-top:1px dashed #e2e8f0;">${donatedOn}</td>
+                          <td style="padding:10px 0;color:#64748b;font-size:14px;font-weight:600;border-top:1px dashed #e2e8f0;">दान तिथि (Date):</td>
+                          <td align="right" style="padding:10px 0;font-weight:800;font-size:15px;color:#1e293b;border-top:1px dashed #e2e8f0;">${donatedOn}</td>
                         </tr>
                       </table>
-                      <div style="margin-top:22px;background:#fff7ed;border:1px solid #fed7aa;border-radius:14px;padding:18px;text-align:center;">
-                        <div style="font-size:12px;color:#9a3412;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Amount Received</div>
-                        <div style="margin-top:6px;font-size:34px;line-height:1;font-weight:800;color:#ff6b00;">${amount}</div>
+                      <div style="margin-top:20px;background:#fff7ed;border:1.5px solid #fed7aa;border-radius:14px;padding:18px;text-align:center;">
+                        <div style="font-size:12px;color:#9a3412;font-weight:800;text-transform:uppercase;letter-spacing:1px;">प्राप्त कुल दान राशि</div>
+                        <div style="margin-top:6px;font-size:36px;line-height:1;font-weight:900;color:#ff6b00;">${amount}</div>
                       </div>
                     </td>
                   </tr>
                 </table>
-                <p style="margin:22px 0 0;color:#475569;font-size:14px;line-height:1.7;text-align:center;">
-                  May your kindness bring peace, prosperity, and blessings to your family.
-                </p>
+                <div style="margin:24px 0 0;color:#9a3412;font-size:15px;line-height:1.7;text-align:center;font-weight:700;background:#fffaf5;padding:14px;border-radius:12px;border:1px dashed #fed7aa;">
+                  🚩 हर हर महादेव! भगवान शिव की असीम कृपा सदैव आप और आपके परिवार पर बनी रहे। <br />
+                  <span style="color:#ff6b00;">जय श्री राम! जय महाकाल!</span>
+                </div>
               </td>
             </tr>
             <tr>
-              <td style="background:#f8fafc;padding:18px 28px;text-align:center;color:#64748b;font-size:12px;line-height:1.6;">
-                <strong style="color:#334155;">${safeTrustName}</strong><br />
-                ${escapeHtml(trustAddress)}${trustAddress ? '<br />' : ''}
-                ${trustPhone ? `Phone: ${escapeHtml(trustPhone)}<br />` : ''}
-                Email: ${escapeHtml(trustEmail)}
+              <td style="background:#f8fafc;padding:18px 28px;text-align:center;color:#64748b;font-size:13px;line-height:1.6;border-top:1px solid #f1f5f9;">
+                <strong style="color:#334155;font-size:14px;">श्री मन्वत बाबा महाशिव मंदिर ट्रस्ट</strong><br />
+                बैरामपुर, कर्नलगंज, गोंडा (उत्तर प्रदेश) - 271502<br />
+                संपर्क: +91 9792939973 | ईमेल: mahashivmandirtrusts@gmail.com
               </td>
             </tr>
           </table>
