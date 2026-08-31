@@ -1,5 +1,6 @@
 const Donation = require('../models/Donation');
 const { sendDonationReceiptEmail } = require('../services/mailService');
+const { logAudit } = require('../services/auditService');
 
 const sendReceiptIfApproved = async (donation) => {
   if (!donation || donation.paymentStatus !== 'Approved') return null;
@@ -68,6 +69,18 @@ exports.updateStatus = async (req, res) => {
     const donation = await existingDonation.save();
     const becameApproved = status === 'Approved' && previousStatus !== 'Approved';
     const receiptEmail = becameApproved ? await sendReceiptIfApproved(donation) : null;
+
+    await logAudit({
+      req,
+      action: 'DONATION_STATUS_CHANGE',
+      details: {
+        donationId: req.params.id,
+        donorName: existingDonation.name,
+        amount: existingDonation.amount,
+        previousStatus,
+        newStatus: status
+      }
+    });
 
     res.json({ ...donation.toObject(), receiptEmail });
   } catch (error) {

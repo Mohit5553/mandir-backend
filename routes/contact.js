@@ -2,9 +2,11 @@ const express = require('express');
 const router = express.Router();
 const Contact = require('../models/Contact');
 const { sendContactMessageEmail } = require('../services/mailService');
+const { verifyToken, requirePermission } = require('../middleware/authMiddleware');
+const { contactRules } = require('../middleware/validationMiddleware');
 
-// Submit contact form
-router.post('/', async (req, res) => {
+// Submit contact form (Public)
+router.post('/', contactRules, async (req, res) => {
   try {
     const contact = new Contact(req.body);
     await contact.save();
@@ -27,7 +29,7 @@ router.post('/', async (req, res) => {
 });
 
 // Get all contact messages (Admin)
-router.get('/', async (req, res) => {
+router.get('/', verifyToken, requirePermission('Contact Messages', 'view'), async (req, res) => {
   try {
     const messages = await Contact.find().sort({ createdAt: -1 });
     res.status(200).json(messages);
@@ -37,7 +39,7 @@ router.get('/', async (req, res) => {
 });
 
 // Toggle read status (Admin)
-router.patch('/:id/read', async (req, res) => {
+router.patch('/:id/read', verifyToken, requirePermission('Contact Messages', 'update'), async (req, res) => {
   try {
     const contact = await Contact.findById(req.params.id);
     if (!contact) return res.status(404).json({ message: 'Message not found' });
@@ -50,7 +52,7 @@ router.patch('/:id/read', async (req, res) => {
 });
 
 // Delete a contact message (Admin)
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', verifyToken, requirePermission('Contact Messages', 'delete'), async (req, res) => {
   try {
     await Contact.findByIdAndDelete(req.params.id);
     res.status(200).json({ message: 'Message deleted successfully' });

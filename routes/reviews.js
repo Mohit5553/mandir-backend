@@ -1,11 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const Review = require('../models/Review');
+const { verifyToken, requirePermission } = require('../middleware/authMiddleware');
+const { reviewRules } = require('../middleware/validationMiddleware');
 
-// @desc    Create a new review
+// @desc    Create a new review (Requires Admin Approval)
 // @route   POST /api/reviews
 // @access  Public
-router.post('/', async (req, res) => {
+router.post('/', reviewRules, async (req, res) => {
   try {
     const { name, rating, comment } = req.body;
     
@@ -17,11 +19,11 @@ router.post('/', async (req, res) => {
       name,
       rating,
       comment,
-      isApproved: true // Auto-approved by default
+      isApproved: false // Submitted for Admin Approval
     });
 
     const createdReview = await review.save();
-    res.status(201).json(createdReview);
+    res.status(201).json({ message: 'Thank you for your feedback! Your review has been submitted for approval.', review: createdReview });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
@@ -32,7 +34,6 @@ router.post('/', async (req, res) => {
 // @access  Public
 router.get('/', async (req, res) => {
   try {
-    // Sort by newest first
     const reviews = await Review.find({ isApproved: true }).sort({ createdAt: -1 });
     res.json(reviews);
   } catch (error) {
@@ -43,7 +44,7 @@ router.get('/', async (req, res) => {
 // @desc    Get all reviews (including unapproved)
 // @route   GET /api/reviews/all
 // @access  Private/Admin
-router.get('/all', async (req, res) => {
+router.get('/all', verifyToken, requirePermission('Reviews', 'view'), async (req, res) => {
   try {
     const reviews = await Review.find({}).sort({ createdAt: -1 });
     res.json(reviews);
@@ -55,7 +56,7 @@ router.get('/all', async (req, res) => {
 // @desc    Approve/Reject a review
 // @route   PUT /api/reviews/:id/approve
 // @access  Private/Admin
-router.put('/:id/approve', async (req, res) => {
+router.put('/:id/approve', verifyToken, requirePermission('Reviews', 'update'), async (req, res) => {
   try {
     const { isApproved } = req.body;
     const review = await Review.findById(req.params.id);
@@ -75,7 +76,7 @@ router.put('/:id/approve', async (req, res) => {
 // @desc    Delete a review
 // @route   DELETE /api/reviews/:id
 // @access  Private/Admin
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', verifyToken, requirePermission('Reviews', 'delete'), async (req, res) => {
   try {
     const review = await Review.findById(req.params.id);
     

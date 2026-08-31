@@ -1,21 +1,66 @@
+const path = require('path');
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 const connectDB = require('./config/db');
 const { errorHandler } = require('./middleware/errorMiddleware');
 
 // Load environment variables
 dotenv.config();
 
+if (!process.env.JWT_SECRET) {
+  console.warn('⚠️ WARNING: JWT_SECRET environment variable is not defined. Using fallback secret.');
+}
+
 // Connect to Database
 connectDB();
 
 const app = express();
 
-// Middlewares
-app.use(cors());
+// Security Headers (Helmet)
+app.use(helmet({
+  contentSecurityPolicy: false, // Keep flexible for Socket.io and media content loading
+  crossOriginEmbedderPolicy: false
+}));
+
+// Improved CORS Config
+const corsOptions = {
+  origin: process.env.ALLOWED_ORIGINS 
+    ? process.env.ALLOWED_ORIGINS.split(',') 
+    : '*',
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+};
+app.use(cors(corsOptions));
+
 app.use(express.json({ limit: '5mb' })); // Changed from 50mb to prevent DDoS
 app.use(express.urlencoded({ extended: false, limit: '5mb' }));
+
+// Serve local upload fallbacks statically
+app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
+
+// General Rate Limiting
+const generalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per windowMs
+  message: { message: 'Too many requests, please try again after 15 minutes.' }
+});
+
+// Strict Rate Limiting for Public Submissions
+const formLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 10, // Limit each IP to 10 form submissions per hour
+  message: { message: 'Too many submissions, please try again after an hour.' }
+});
+
+// Apply rate limits on specific routes
+app.use('/api/auth/login', generalLimiter);
+app.use('/api/auth/register', generalLimiter);
+app.use('/api/donations/create-order', formLimiter);
+app.use('/api/contact', formLimiter);
+app.use('/api/reviews', formLimiter);
 
 // Routes
 app.use('/api/auth', require('./routes/auth'));

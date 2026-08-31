@@ -6,6 +6,7 @@ const TrustManagement = require('../models/TrustManagement');
 const DeviceToken = require('../models/DeviceToken');
 const { sendNotificationEmail } = require('../services/mailService');
 const { sendPushNotification } = require('../config/firebase');
+const { verifyToken, requirePermission } = require('../middleware/authMiddleware');
 
 const getRecipientEmails = async () => {
   const donations = await Donation.find({ email: { $exists: true, $ne: '' } }).select('email');
@@ -19,7 +20,7 @@ const getRecipientEmails = async () => {
     .filter(email => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)))];
 };
 
-// Get all notifications
+// Get all notifications (Public for site notifications board)
 router.get('/', async (req, res) => {
   try {
     const notifications = await Notification.find().sort({ sentAt: -1 });
@@ -29,7 +30,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Register Device Token
+// Register Device Token (Public for app installation setup)
 router.post('/register-token', async (req, res) => {
   try {
     const { token, platform } = req.body;
@@ -47,8 +48,8 @@ router.post('/register-token', async (req, res) => {
   }
 });
 
-// Send a notification
-router.post('/', async (req, res) => {
+// Send a notification (Protected admin action)
+router.post('/', verifyToken, requirePermission('Notifications', 'create'), async (req, res) => {
   try {
     const notification = new Notification(req.body);
     await notification.save();

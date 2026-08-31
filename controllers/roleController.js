@@ -1,9 +1,11 @@
 const Role = require('../models/Role');
+const { logAudit } = require('../services/auditService');
 
 const ALL_MENUS = [
   'Dashboard', 'Users', 'Roles', 'Trust Management', 'Donations',
   'Events', 'News', 'Gallery', 'Home Carousel', 'Homepage Content',
-  'Volunteer Requests', 'Live Stream', 'Notifications', 'Contact Messages', 'Reports'
+  'Volunteer Requests', 'Live Stream', 'Notifications', 'Contact Messages', 'Reports',
+  'Reviews', 'Audit Logs'
 ];
 
 exports.getAllRoles = async (req, res) => {
@@ -28,6 +30,13 @@ exports.createRole = async (req, res) => {
     });
     const role = new Role({ name: name.trim(), permissions: merged });
     await role.save();
+
+    await logAudit({
+      req,
+      action: 'ROLE_CREATION',
+      details: { roleName: role.name, permissions: merged }
+    });
+
     res.status(201).json(role);
   } catch (error) {
     if (error.code === 11000) {
@@ -50,6 +59,13 @@ exports.updateRole = async (req, res) => {
       { new: true }
     );
     if (!role) return res.status(404).json({ message: 'Role not found.' });
+
+    await logAudit({
+      req,
+      action: 'ROLE_UPDATE',
+      details: { roleId: req.params.id, roleName: role.name, permissions: merged }
+    });
+
     res.status(200).json(role);
   } catch (error) {
     if (error.code === 11000) {
@@ -61,7 +77,17 @@ exports.updateRole = async (req, res) => {
 
 exports.deleteRole = async (req, res) => {
   try {
+    const role = await Role.findById(req.params.id);
+    if (!role) return res.status(404).json({ message: 'Role not found.' });
+
     await Role.findByIdAndDelete(req.params.id);
+
+    await logAudit({
+      req,
+      action: 'ROLE_DELETION',
+      details: { roleId: req.params.id, roleName: role.name }
+    });
+
     res.status(200).json({ message: 'Role deleted successfully.' });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });

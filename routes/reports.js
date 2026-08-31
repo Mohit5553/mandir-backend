@@ -4,12 +4,13 @@ const Donation = require('../models/Donation');
 const Event = require('../models/Event');
 const News = require('../models/News');
 const User = require('../models/User');
+const { verifyToken, requirePermission } = require('../middleware/authMiddleware');
 
 const DONATION_CATEGORIES = ['General Donation', 'Construction Fund', 'Annadan', 'Gau Seva'];
 const PAYMENT_MODES = ['Cash', 'UPI'];
 const DONATION_STATUSES = ['Approved', 'Pending', 'Rejected'];
 
-router.get('/', async (req, res) => {
+router.get('/', verifyToken, requirePermission('Reports', 'view'), async (req, res) => {
   try {
     const now = new Date();
     const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());

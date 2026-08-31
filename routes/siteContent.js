@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const SiteContent = require('../models/SiteContent');
+const { verifyToken, requirePermission } = require('../middleware/authMiddleware');
+const { logAudit } = require('../services/auditService');
 
 const defaultSections = [
   { key: 'announcement', label: 'Announcement Bar', enabled: true, order: 1 },
@@ -104,6 +106,7 @@ const ensureContent = async () => {
   return content;
 };
 
+// Public route to get site content
 router.get('/', async (req, res) => {
   try {
     const content = await ensureContent();
@@ -113,7 +116,8 @@ router.get('/', async (req, res) => {
   }
 });
 
-router.put('/', async (req, res) => {
+// Protected route to update site content
+router.put('/', verifyToken, requirePermission('Homepage Content', 'update'), async (req, res) => {
   try {
     const content = await ensureContent();
     content.set({
@@ -121,6 +125,13 @@ router.put('/', async (req, res) => {
       updatedAt: Date.now()
     });
     await content.save();
+
+    await logAudit({
+      req,
+      action: 'SITE_CONTENT_UPDATE',
+      details: { updatedFields: Object.keys(req.body) }
+    });
+
     res.json(content);
   } catch (error) {
     res.status(500).json({ message: error.message });
