@@ -23,7 +23,7 @@ const reset = async () => {
     if (!user) {
       console.log('❌ No admin user found in database. Let\'s create a new one!');
       user = new User({
-        name: 'Super Admin',
+        name: 'मुख्य मंदिर प्रशासक',
         email: 'mahashivmandirtrusts@gmail.com',
         password: 'admin123',
         role: 'Super Admin',
@@ -35,12 +35,14 @@ const reset = async () => {
       console.log('   Password: admin123');
     } else {
       console.log(`👤 Found user: ${user.name} (${user.email})`);
+      user.name = 'मुख्य मंदिर प्रशासक';
       user.email = 'mahashivmandirtrusts@gmail.com';
       user.password = 'admin123';
       user.resetPasswordToken = undefined;
       user.resetPasswordExpires = undefined;
       await user.save();
       console.log('✅ Updated admin credentials!');
+      console.log('   Name updated to: मुख्य मंदिर प्रशासक');
       console.log('   Email updated to: mahashivmandirtrusts@gmail.com');
       console.log('   Password reset to: admin123');
     }

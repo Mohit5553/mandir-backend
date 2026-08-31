@@ -60,7 +60,6 @@ app.use('/api/auth/login', generalLimiter);
 app.use('/api/auth/register', generalLimiter);
 app.use('/api/donations/create-order', formLimiter);
 app.use('/api/contact', formLimiter);
-app.use('/api/reviews', formLimiter);
 
 // Routes
 app.use('/api/auth', require('./routes/auth'));

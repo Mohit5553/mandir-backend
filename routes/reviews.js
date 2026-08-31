@@ -4,10 +4,17 @@ const Review = require('../models/Review');
 const { verifyToken, requirePermission } = require('../middleware/authMiddleware');
 const { reviewRules } = require('../middleware/validationMiddleware');
 
+const rateLimit = require('express-rate-limit');
+const formLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 10,
+  message: { message: 'Too many submissions, please try again after an hour.' }
+});
+
 // @desc    Create a new review (Requires Admin Approval)
 // @route   POST /api/reviews
 // @access  Public
-router.post('/', reviewRules, async (req, res) => {
+router.post('/', formLimiter, reviewRules, async (req, res) => {
   try {
     const { name, rating, comment } = req.body;
     
